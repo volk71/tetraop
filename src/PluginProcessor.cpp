@@ -44,7 +44,7 @@ static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     layout.add(std::make_unique<AudioParameterFloat>("glide", "Glide", NormalisableRange<float>(0.0f, 8000.0f, 1.f, 0.5f), 0.f));
     layout.add(std::make_unique<AudioParameterFloat>("glide_tension", "Glide Tension", -1.f, 1.f, 0.f));
     layout.add(std::make_unique<AudioParameterFloat>("global_time", "Global Time", -1.f, 1.f, 0.f));
-    layout.add(std::make_unique<AudioParameterFloat>("global_pitch", "Global Time", -24.f, 24.f, 0.f));
+    layout.add(std::make_unique<AudioParameterFloat>("global_pitch", "Global Pitch", -24.f, 24.f, 0.f));
     layout.add(std::make_unique<AudioParameterFloat>("vel_sense", "Vel Sense", 0.f, 1.f, 1.f));
     layout.add(std::make_unique<AudioParameterInt>("pitch_bend", "Pitch Bend", 1, 48, 2));
     layout.add(std::make_unique<AudioParameterFloat>("master_gain", "Master Gain", NormalisableRange<float>(0.f, 4.f, 0.001f, 0.5f), 1.f));
@@ -103,7 +103,7 @@ static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         layout.add(std::make_unique<AudioParameterFloat>(prefix + "pan", prefixnm + "Pan", 0.f, 1.f, 0.5f));
         layout.add(std::make_unique<AudioParameterInt>(prefix + "pitch_semis", prefixnm + "Pitch Semis", -36, 36, 0));
         layout.add(std::make_unique<AudioParameterInt>(prefix + "pitch_cents", prefixnm + "Pitch Cents", -100, 100, 0));
-        layout.add(std::make_unique<AudioParameterInt>(prefix + "pitch_oct", prefixnm + "Pitch Cents", -4, 4, 0));
+        layout.add(std::make_unique<AudioParameterInt>(prefix + "pitch_oct", prefixnm + "Pitch Octaves", -4, 4, 0));
         layout.add(std::make_unique<AudioParameterBool>(prefix + "morph_snap", prefixnm + "Frame Snap", true));
         layout.add(std::make_unique<AudioParameterFloat>(prefix + "morph", prefixnm + "Morph", NormalisableRange<float>(0.f, 1.f), 0.f));
         layout.add(std::make_unique<AudioParameterFloat>(prefix + "phase_offset", prefixnm + "Phase", 0.f, 1.f, 0.0f));
@@ -158,15 +158,15 @@ static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     layout.add(std::make_unique<AudioParameterBool>("lfo_grid_snap", "LFO Grid Snap", false));
 
     for (int i = 0; i < MAX_LFOS; ++i) {
-        layout.add(std::make_unique<AudioParameterChoice>("lfo" + juce::String(i + 1) + "_mode", "LFO" + juce::String(i + 1) + " Sync", StringArray{ "Trigger", "Sync", "Envelope" }, 0));
+        layout.add(std::make_unique<AudioParameterChoice>("lfo" + juce::String(i + 1) + "_mode", "LFO" + juce::String(i + 1) + " Mode", StringArray{ "Trigger", "Sync", "Envelope" }, 0));
         layout.add(std::make_unique<AudioParameterChoice>("lfo" + juce::String(i + 1) + "_sync", "LFO" + juce::String(i + 1) + " Sync", StringArray{ "RateHz", "Straight", "Tripplet", "Dotted" }, 1));
         layout.add(std::make_unique<AudioParameterFloat>("lfo" + juce::String(i + 1) + "_rate", "LFO" + juce::String(i + 1) + " Rate", NormalisableRange<float>(0.01f, 50.f, 0.00001f, 0.3f), 1.f));
-        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_rate_sync", "LFO" + juce::String(i + 1) + " Rate Sync", 0, 10, 5)); // 16bar, 2bar, 1bar ... 1/64
+        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_rate_sync", "LFO" + juce::String(i + 1) + " Rate Sync", 0, 10, 5));
         layout.add(std::make_unique<AudioParameterFloat>("lfo" + juce::String(i + 1) + "_smooth", "LFO" + juce::String(i + 1) + " Smooth", 0.f, 1.f, 0.f));
         layout.add(std::make_unique<AudioParameterFloat>("lfo" + juce::String(i + 1) + "_delay", "LFO" + juce::String(i + 1) + " Delay", 0.f, 4.f, 0.f));
-        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_delay_sync", "LFO" + juce::String(i + 1) + " Delay Sync", 0, 11, 0)); // Off 1/64 1/32 1/16 1/8 ... 16Bar
+        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_delay_sync", "LFO" + juce::String(i + 1) + " Delay Sync", 0, 11, 0));
         layout.add(std::make_unique<AudioParameterFloat>("lfo" + juce::String(i + 1) + "_rise", "LFO" + juce::String(i + 1) + " Rise", 0.f, 4.f, 0.f));
-        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_rise_sync", "LFO" + juce::String(i + 1) + " Rise Sync", 0, 11, 0)); // Off 1/64 1/32 1/16 1/8 ... 16Bar
+        layout.add(std::make_unique<AudioParameterInt>("lfo" + juce::String(i + 1) + "_rise_sync", "LFO" + juce::String(i + 1) + " Rise Sync", 0, 11, 0));
     }
 
     for (int i = 0; i < MAX_RNDS; ++i) {
@@ -175,7 +175,7 @@ static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
         layout.add(std::make_unique<AudioParameterBool>(prefix + "_global", "Rand" + String(i + 1) + " Global Sync", false));
         layout.add(std::make_unique<AudioParameterChoice>(prefix + "_sync", "Rand" + juce::String(i + 1) + " Sync", StringArray{ "RateHz", "Straight", "Tripplet", "Dotted" }, 1));
         layout.add(std::make_unique<AudioParameterFloat>(prefix + "_rate", "Rand" + juce::String(i + 1) + " Rate", NormalisableRange<float>(0.01f, 50.f, 0.00001f, 0.3f), 1.f));
-        layout.add(std::make_unique<AudioParameterInt>(prefix + "_rate_sync", "Rand" + juce::String(i + 1) + " Rate Sync", 0, 10, 5)); // 16bar, 2bar, 1bar ... 1/64
+        layout.add(std::make_unique<AudioParameterInt>(prefix + "_rate_sync", "Rand" + juce::String(i + 1) + " Rate Sync", 0, 10, 5));
     }
 
     for (int i = 0; i < MAX_MODULATIONS; ++i) {
@@ -204,7 +204,7 @@ static AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     layout.add(std::make_unique<MetaParameterChoice>("fx_delay_sync_r", "FX Delay Sync", juce::StringArray{ "RateHz", "Straight", "Triplet", "Dotted" }, 1));
     layout.add(std::make_unique<MetaParameterFloat>("fx_delay_rate_l", "FX Delay Rate", juce::NormalisableRange<float>(0.001f, 10.f, 0.001f, 0.3f), .5f));
     layout.add(std::make_unique<MetaParameterFloat>("fx_delay_rate_r", "FX Delay Rate", juce::NormalisableRange<float>(0.001f, 10.f, 0.001f, 0.3f), .5f));
-    layout.add(std::make_unique<MetaParameterInt>("fx_delay_rate_sync_l", "FX Delay Rate Sync", 0, 8, 4)); // 2 bar, bar .... 1/128
+    layout.add(std::make_unique<MetaParameterInt>("fx_delay_rate_sync_l", "FX Delay Rate Sync", 0, 8, 4));
     layout.add(std::make_unique<MetaParameterInt>("fx_delay_rate_sync_r", "FX Delay Rate Sync", 0, 8, 4));
     layout.add(std::make_unique<juce::AudioParameterFloat>("fx_delay_feedback", "FX Delay Feedback", 0.f, 1.f, 0.35f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("fx_delay_lowcut", "FX Delay Lowcut", juce::NormalisableRange<float>(20.0f, 20000.0f, 1.f, 0.3f), 20.0f));
@@ -327,9 +327,11 @@ TetraOPAudioProcessor::TetraOPAudioProcessor()
         true, true
     );
 
+    // Initial caching of atomic pointers to FX parameters
     for (int i = 0; i < FX::kFXs; i++) {
         fxOrder.push_back((FX::FXType)i);
         auto prefix = juce::String(FX::FXPrefix[i].data());
+        fxOnParams[i] = params.getRawParameterValue(prefix + "on");
         params.addParameterListener(prefix + "on", this);
     }
 
@@ -338,6 +340,15 @@ TetraOPAudioProcessor::TetraOPAudioProcessor()
 
     modulation = std::make_unique<Modulation>(*this);
     synth = std::make_unique<Synth>(*this);
+
+    // Caching of primary atomic pointers to avoid complex string operations in the audio thread
+    polyphonyParam  = params.getRawParameterValue("polyphony");
+    legatoParam     = params.getRawParameterValue("legato");
+    monoParam       = params.getRawParameterValue("mono");
+    mpeParam        = params.getRawParameterValue("mpe");
+    glideParam      = params.getRawParameterValue("glide");
+    pitchBendParam  = params.getRawParameterValue("pitch_bend");
+    masterGainParam = params.getRawParameterValue("master_gain");
 
     params.addParameterListener("polyphony", this);
     params.addParameterListener("legato", this);
@@ -392,7 +403,8 @@ void TetraOPAudioProcessor::onFXChanged()
     for (int i = 0; i < FX::kFXs; i++) {
         auto type = (FX::FXType)i;
 
-        bool on = (bool)params.getRawParameterValue(String(FX::FXPrefix[i].data()) + "on")->load();
+        // Direct reading from the atomic pointer instead of via getRawParameterValue(string)
+        bool on = (fxOnParams[i] != nullptr) && (fxOnParams[i]->load() > 0.5f);
 
         if (on) {
             if (fxSlots[type] == nullptr)
@@ -647,6 +659,10 @@ void TetraOPAudioProcessor::prepareToPlay (double sampleRate, int _samplesPerBlo
     srate = (float)sampleRate;
     osrate = (float)sampleRate * osfactor;
     iosrate = 1.f / osrate;
+
+    // Sizing of the pre-allocated oversampling buffer
+    osBuffer.setSize(2, samplesPerBlock * osfactor, false, false, true);
+
     synth->setCurrentPlaybackSampleRate(sampleRate * osfactor);
     synth->prepare();
     modulation->prepare();
@@ -666,8 +682,6 @@ void TetraOPAudioProcessor::prepareToPlay (double sampleRate, int _samplesPerBlo
 
 void TetraOPAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -677,14 +691,9 @@ bool TetraOPAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
     juce::ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
@@ -714,6 +723,7 @@ void TetraOPAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
     if (totalNumOutputChannels == 0 || numSamples == 0) {
         buffer.clear();
+        dspLock.exit();
         return;
     }
 
@@ -728,7 +738,7 @@ void TetraOPAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
             }
             else if (auto ppq = pos->getPpqPosition()) {
                 if (auto tempo = pos->getBpm()) {
-                    timeInSeconds = *ppq * (60.0 / *tempo); // fallback
+                    timeInSeconds = *ppq * (60.0 / *tempo);
                 }
             }
             playing = pos->getIsPlaying();
@@ -739,15 +749,17 @@ void TetraOPAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
     if (configsChanged)
     {
-        polyphony = (int)params.getRawParameterValue("polyphony")->load();
-        mpe_enabled = (bool)params.getRawParameterValue("mpe")->load();
-        bool mono = (bool)params.getRawParameterValue("mono")->load();
-        float glide = params.getRawParameterValue("glide")->load();
+        // Direct reading without string lookup
+        polyphony = polyphonyParam ? (int)polyphonyParam->load() : 32;
+        mpe_enabled = mpeParam ? (mpeParam->load() > 0.5f) : false;
+        bool mono = monoParam ? (monoParam->load() > 0.5f) : false;
+        float glide = glideParam ? glideParam->load() : 0.f;
+
         synth->setMono(mono);
-        synth->setLegato((bool)params.getRawParameterValue("legato")->load());
+        synth->setLegato(legatoParam ? (legatoParam->load() > 0.5f) : false);
         synth->setGlideRate(glide);
         synth->setPortamento(mono && glide > 0.f);
-        synth->setPitchBendRange((int)params.getRawParameterValue("pitch_bend")->load());
+        synth->setPitchBendRange(pitchBendParam ? (int)pitchBendParam->load() : 2);
         synth->setMPE(mpe_enabled);
         synth->setNumVoices(polyphony);
         configsChanged = false;
@@ -768,7 +780,13 @@ void TetraOPAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
     juce::dsp::AudioBlock<float> outputBlock(buffer);
     auto osBlock = oversampler->processSamplesUp(outputBlock);
-    gin::ScratchBuffer osBuffer(2, numSamples * osfactor);
+
+    // Safe management of the pre-allocated buffer size
+    int requiredSamples = numSamples * osfactor;
+    if (osBuffer.getNumSamples() < requiredSamples) {
+        osBuffer.setSize(2, requiredSamples, false, false, true);
+    }
+    osBuffer.clear();
 
     synth->startBlock();
     while (todo > 0)
@@ -799,14 +817,16 @@ void TetraOPAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     {
         std::memcpy(
             osBlock.getChannelPointer(ch),
-            osBuffer.getWritePointer(ch),
-            sizeof(float) * osBuffer.getNumSamples());
+            osBuffer.getReadPointer(ch),
+            sizeof(float) * (size_t)requiredSamples);
     }
     oversampler->processSamplesDown(outputBlock);
 
     processFx(buffer.getWritePointer(0), buffer.getWritePointer(1), numSamples);
 
     buffer.applyGain(masterGain);
+
+    // SIMD-accelerated RMS measurement using JUCE
     rmsL.store(buffer.getMagnitude(0, 0, numSamples));
     rmsR.store(buffer.getMagnitude(1, 0, numSamples));
 
@@ -889,7 +909,7 @@ void TetraOPAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 void TetraOPAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement>xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState == nullptr) { // Fallback to utf8 parsing
+    if (xmlState == nullptr) {
         auto xmlString = juce::String::fromUTF8(static_cast<const char*>(data), sizeInBytes);
         xmlState = juce::parseXML(xmlString);
     }
@@ -969,7 +989,6 @@ void TetraOPAudioProcessor::setStateInformation (const void* data, int sizeInByt
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TetraOPAudioProcessor();
