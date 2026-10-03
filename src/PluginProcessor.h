@@ -24,6 +24,7 @@
 
 #include <JuceHeader.h>
 #include <vector>
+#include <array>
 #include "libMTSClient.h"
 #include "engine/Synth.h"
 #include "engine/Modulation.h"
@@ -66,6 +67,9 @@ public:
     std::vector<float> leftBuf;
     std::vector<float> rightBuf;
     bool isLoadingPreset = false;
+
+    // Pre-allocated audio buffer for oversampling (eliminates allocations in the audio thread)
+    juce::AudioBuffer<float> osBuffer;
 
     // Undo
     std::unique_ptr<UndoMgr> undomgr;
@@ -112,12 +116,22 @@ public:
     bool showRMMatrix = false;
     String displayEnv = "env1";
     String displayLfo = "lfo1";
-    std::atomic<float> rmsL;
-    std::atomic<float> rmsR;
-    std::atomic<bool> FXDirty;
+    std::atomic<float> rmsL{0.f};
+    std::atomic<float> rmsR{0.f};
+    std::atomic<bool> FXDirty{false};
     std::atomic<float> compReduction = 0.f;
 
     juce::UndoManager undoManager;
+
+    // Atomic pointers for direct, ultra-fast access without string lookups
+    std::atomic<float>* polyphonyParam = nullptr;
+    std::atomic<float>* legatoParam = nullptr;
+    std::atomic<float>* monoParam = nullptr;
+    std::atomic<float>* mpeParam = nullptr;
+    std::atomic<float>* glideParam = nullptr;
+    std::atomic<float>* pitchBendParam = nullptr;
+    std::atomic<float>* masterGainParam = nullptr;
+    std::array<std::atomic<float>*, FX::kFXs> fxOnParams{};
 
     //==============================================================================
     TetraOPAudioProcessor();
