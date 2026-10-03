@@ -60,7 +60,7 @@ sudo apt-get install libx11-dev libfreetype-dev libfontconfig1-dev libasound2-de
 cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -S . -B ./build
 cmake --build ./build --config Release
 
-# macOS
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -S . -B ./build
+# macOS Intel/Silicon
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" -S . -B ./build
 cmake --build ./build --config Release
 ```
