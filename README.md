@@ -39,6 +39,6 @@ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -S . -B ./build
 cmake --build ./build --config Release
 
 # macOS Intel/Silicon
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0" -S . -B ./build
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -S . -B ./build
 cmake --build ./build --config Release
 ```
