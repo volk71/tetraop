@@ -1,10 +1,3 @@
-<h1 align="center">
-  <!-- <img src="doc/logo.png" width="200" style="padding: 5px;" /> -->
-  TetraOP
-  <br>
-</h1>
-<div align="center">
-
 ## Release Notes: Performance Update and DSP Optimization
 
 This update introduces a critical architectural revision of the source code aimed at stabilizing the audio thread, reducing CPU usage, and ensuring glitch-free (dropout-free) execution, even under heavy polyphonic and modular processing loads.
