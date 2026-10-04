@@ -5,44 +5,29 @@
 </h1>
 <div align="center">
 
-[![Windows Support](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/tiagolr/tetraop/releases)
-[![Ubuntu Support](https://img.shields.io/badge/Linux-E95420?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/tiagolr/tetraop/releases)
-[![Mac Support](https://img.shields.io/badge/MACOS-adb8c5?style=for-the-badge&logo=macos&logoColor=white)](https://github.com/tiagolr/tetraop/releases)
+## Release Notes: Performance Update and DSP Optimization
 
-</div>
-<div align="center">
+This update introduces a critical architectural revision of the source code aimed at stabilizing the audio thread, reducing CPU usage, and ensuring glitch-free (dropout-free) execution, even under heavy polyphonic and modular processing loads.
 
-[![GitHub package.json version](https://img.shields.io/github/v/release/tiagolr/tetraop?color=%40&label=latest)](https://github.com/tiagolr/tetraop/releases/latest)
-![GitHub issues](https://img.shields.io/github/issues-raw/tiagolr/tetraop)
-![GitHub all releases](https://img.shields.io/github/downloads/tiagolr/tetraop/total)
-![Github license](https://img.shields.io/github/license/tiagolr/tetraop)
+### 1. Elimination of String Lookups in the Audio Thread
 
-</div>
+*   **Description:** Replaced `params.getRawParameterValue("string")` calls within the `processBlock` function with pre-initialized `std::atomic<float>*` pointers.
+*   **Technical Rationale:** String-based lookups within the parameter tree (`ValueTreeState`) involve variable and excessively high time complexity for a real-time audio thread. Requesting parameters by name during every buffer cycle forced the CPU to perform constant text-based searches. Caching atomic pointers during plugin instantiation (in the constructor) transforms this into a direct, thread-safe memory access with O(1) constant time complexity, eliminating CPU usage spikes during automation.
 
-TetraOP is a wavetable synth with four oscillators, FM, Unison, ring modulation and more.
+### 2. Memory Pre-allocation (Zero-Allocation Audio Thread)
 
-![](./doc/tetraop.png)
+*   **Description:** Moved the declaration, sizing, and allocation of the oversampling buffer (`osBuffer`) from the `processBlock` routine to the `prepareToPlay` function.
+*   **Technical Rationale:** Heap memory allocation (creating new buffers or dynamically resizing them) during audio processing is an OS-dependent operation with non-deterministic execution time. If the audio thread is forced to wait for the OS to allocate memory, audio dropouts inevitably occur. Statically pre-allocating the maximum required size during `prepareToPlay` ensures that the DSP operates in a "lock-free" and "allocation-free" context.
 
-My first attempt at a wavetable synthesizer, it is based of Ableton Operator and combines four wavetable oscillators with phase and ring modulation. Its built using [Gin](https://github.com/FigBug/Gin/tree/master) and Juce.
+### 3. Streamlining the FX Oversampling Workflow
 
-Overall it's a well executed synth with good performance and SIMD across voices, it doesn't have however wavetable editor or a great filter section or a preset browser etc, due to FM not playing well with wavetables I am not sure I'll be adding new features either.
+* **Description:** Optimization of routing and elimination of redundant processing cycles associated with upsampling and downsampling, particularly for the `Distortion` module.
+* **Technical Rationale:** The polyphase filters (Half-Band Polyphase IIR) used for oversampling are among the most computationally intensive processes for a plugin. Previously, the signal was oversampled, scaled back to the original sample rate, and—in the event of saturation—oversampled again. By consolidating the `processSamplesUp` and `processSamplesDown` logic within the FX chain and avoiding the instantiation of additional transient buffers, the number of calculations required for anti-aliasing filtering has been drastically reduced without compromising final audio quality.
 
-## Features
+### 4. Vector Acceleration (SIMD) for Visual Metering
 
-* Wavetable based synthesis
-* 4 operators with FM and RM routing
-* 10 predefined FM layouts
-* FM and RM routing matrix
-* 16 Unison voices per operator
-* 5 Unison modes
-* 8 Phase distortion modes
-* 2 Filters with 5 types and 4 modes each
-* Drag-and-drop modulation system
-* Envelopes, LFOs, Macros and other modulation sources
-
-## Download
-
-Check the [Releases](https://github.com/tiagolr/tetraop/releases) page.
+* **Description:** Integration of the JUCE-provided `buffer.getMagnitude()` method to calculate and store RMS/Peak values ​​for UI updates.
+* **Technical Rationale:** Calculating absolute values ​​and averages to provide visual feedback (meters) can consume valuable DSP resources if processed sample-by-sample using traditional `for` loops. By utilizing JUCE primitives, the compiler delegates the operation to the CPU's SIMD (Single Instruction, Multiple Data) instructions, which process entire blocks of memory simultaneously; this reduces the overhead required to communicate signal amplitude to the GUI to a mere fraction of the original cost.
 
 ## Build
 
